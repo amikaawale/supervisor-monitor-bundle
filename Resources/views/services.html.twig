@@ -1,0 +1,86 @@
+{% if services is defined and services %}
+    {% for name, procs in services %}
+    	<div class="col-sm-12">
+    		<div>
+        		<h4><strong>{{name | capitalize }} ({{ version[name].val.me.string }})</strong></h4>
+
+        		<a class="supervisor-control btn btn-sm btn-success" href="{{ path('zo_supervisor_monitor_start_all', {'name': name}) }}" title="Start All">Start All</a>
+        		<a class="supervisor-control btn btn-sm btn-danger" href="{{ path('zo_supervisor_monitor_stop_all', {'name': name}) }}" title="Stop All">Stop All</a>
+        		<a class="supervisor-control btn btn-sm btn-info" href="{{ path('zo_supervisor_monitor_restart_all', {'name': name}) }}" title="Restart All">Restart All</a>
+    		</div>
+        	<table class="table table-bordered">
+        		<tr>
+        			<th>State</th>
+        			<th>Description</th>
+        			<th>Process Name</th>
+        			<th>Action</th>
+        		</tr>
+
+        		{% for ps in procs.val.me.array %}
+        			{% set p = ps.me.struct %}
+        			{% set status = p.statename.me.string %}
+    				{% if p.group.me.string != p.name.me.string %}
+    					{% set worker = p.group.me.string ~ ':' ~ p.name.me.string %}
+    				{% else %}
+    					{% set worker = p.name.me.string %}
+    				{% endif %}
+        			<tr>
+        				<td>{{ status }}</td>
+        				<td>{{ p.pid.me.int ? p.description.me.string : p.description.me.string }}</td>
+        				<td>{{ worker }}</td>
+        				<td>
+        				{% if status == 'RUNNING' %}
+        					<a class="supervisor-control btn btn-xs btn-danger" href="{{ path('zo_supervisor_monitor_stop', {'name': name, 'worker': worker}) }}">Stop</a>
+        					<a class="supervisor-control btn btn-xs btn-info" href="{{ path('zo_supervisor_monitor_restart', {'name': name, 'worker': worker}) }}">Restart</a>
+        				{% endif %}
+        				{% if (status == 'STOPPED') or ( status == 'EXITED') or ( status == 'FATAL')  %}
+        					<a class="supervisor-control btn btn-xs btn-success" href="{{ path('zo_supervisor_monitor_start', {'name': name, 'worker': worker}) }}">Start</a>
+        				{% endif %}
+        				{#
+        					<a class="supervisor-control btn btn-xs btn-default" href="{{ path('zo_supervisor_monitor_clear_log', {'name': name, 'worker': worker}) }}">Clear Log</a>
+        				#}
+        				</td>
+        			</tr>
+        		{% endfor %}
+        	</table>
+    	</div>
+    {% endfor %}
+
+    <script
+      src="https://code.jquery.com/jquery-2.2.4.min.js"
+      integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44="
+      crossorigin="anonymous"></script>
+
+    <script type="text/javascript">
+
+    	(function ($) {
+    		$('a.supervisor-control').on('click', function(e){
+    			$(this).attr('disabled', 'disabled');
+    			e.preventDefault();
+    			processControl($(this));
+    			return false;
+    		});
+
+    		function processControl(ele){
+    			var controlUrl = ele.attr('href')
+    			$.ajax({
+                    type : 'GET',
+                    dataType: 'json',
+                    url : controlUrl
+
+                }).done(function( data, textStatus, jqXHR ){
+                	console.log(data);
+                	window.location.reload()
+
+                }).fail(function( jqXHR, textStatus, errorThrown ) {
+                    var errorText = jqXHR.responseJSON;
+                	console.log(errorText);
+                }).complete(function(){
+                	ele.removeAttr('disabled');
+                });
+    		}
+    	}(jQuery));
+    </script>
+{% endif %}
+
+

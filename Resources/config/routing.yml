@@ -1,0 +1,31 @@
+
+zo_supervisor_monitor_start:
+    path:     /monitor/start/{name}/{worker}
+    defaults: { _controller: ZOSupervisorMonitorBundle:Monitor:start }
+
+zo_supervisor_monitor_restart:
+    path:     /monitor/restart/{name}/{worker}
+    defaults: { _controller: ZOSupervisorMonitorBundle:Monitor:restart }
+
+zo_supervisor_monitor_stop:
+    path:     /monitor/stop/{name}/{worker}
+    defaults: { _controller: ZOSupervisorMonitorBundle:Monitor:stop }
+zo_supervisor_monitor_clear_log:
+    path:     /monitor/clear-log/{name}/{worker}
+    defaults: { _controller: ZOSupervisorMonitorBundle:Monitor:clearLog }
+
+
+zo_supervisor_monitor_start_all:
+    path:     /monitor/start-all/{name}
+    defaults: { _controller: ZOSupervisorMonitorBundle:Monitor:startAll }
+
+zo_supervisor_monitor_restart_all:
+    path:     /monitor/restart-all/{name}
+    defaults: { _controller: ZOSupervisorMonitorBundle:Monitor:restartAll }
+
+zo_supervisor_monitor_stop_all:
+    path:     /monitor/stop-all/{name}
+    defaults: { _controller: ZOSupervisorMonitorBundle:Monitor:stopAll }
+zo_supervisor_monitor_index:
+    path:     /monitor
+    defaults: { _controller: ZOSupervisorMonitorBundle:Monitor:index }

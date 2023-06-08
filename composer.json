@@ -1,0 +1,30 @@
+{
+    "name": "zozo/supervisor-monitor-bundle",
+    "type": "symfony-bundle",
+    "description": "This Bundle provides interface to monitor supervisor server processes",
+    "keywords": ["supervisor"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Sanjip Thapa",
+            "email": "san.loggingin@gmail.com"
+        },
+        {
+            "name": "Amika Awale",
+            "email": "awaley03@gmail.com"
+        }
+    ],
+    "autoload":{
+        "psr-4":{
+            "ZO\\Bundle\\SupervisorMonitorBundle\\": ""
+        },
+        "exclude-from-classmap": [
+            "Tests/"
+        ]
+    },
+    "require": {
+        "php": ">=7.2.5",
+        "symfony/framework-bundle": "5.4.*",
+        "phpxmlrpc/phpxmlrpc": "4.3.1"
+    }
+}

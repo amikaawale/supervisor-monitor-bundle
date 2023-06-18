@@ -22,7 +22,7 @@
 		<div class="container">
 			<div class="row">
 				{% if services is defined and services %}
-					{% include 'ZOSupervisorMonitorBundle::services.html.twig' %}
+					{% include '@ZOSupervisorMonitor/services.html.twig' %}
 				{% else %}
 					<p>Supervisor servers has not been configured.</p>
 				{% endif %}

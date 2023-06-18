@@ -1,4 +1,5 @@
 services:
     zo_supervisor_monitor.util.client:
+       public: true
        class: ZO\Bundle\SupervisorMonitorBundle\Util\SupervisorClient
        arguments: ["%zo_supervisor_monitor.servers%"]

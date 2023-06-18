@@ -11,18 +11,11 @@ use ZO\Bundle\SupervisorMonitorBundle\Util\SupervisorClient;
 
 class MonitorController extends AbstractController
 {
-    /**
-     * @var SupervisorClient
-     */
-    private $supervisorClient;
-
-    public function __construct(SupervisorClient $supervisorClient)
-     {
-         $this->supervisorClient = $supervisorClient;
-     }
 
     public function indexAction()
     {
+        echo 'testing';
+        exit;
     	$res = $this->supervisorClient->getServersListVersion();
         
         $services = $res ? $res['services'] : null;

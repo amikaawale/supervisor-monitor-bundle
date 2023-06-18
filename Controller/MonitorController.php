@@ -7,20 +7,29 @@ use PhpXmlRpc\Value;
 use PhpXmlRpc\Request;
 use PhpXmlRpc\Client;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use ZO\Bundle\SupervisorMonitorBundle\Util\SupervisorClient;
 
 class MonitorController extends AbstractController
 {
+    /**
+     * @var SupervisorClient
+     */
+    private $supervisorClient;
+
+    public function __construct(SupervisorClient $supervisorClient)
+     {
+         $this->supervisorClient = $supervisorClient;
+     }
+
     public function indexAction()
     {
-    	$supervisorClient = $this->get('zo_supervisor_monitor.util.client');
-    	$res = $supervisorClient->getServersListVersion();
+    	$res = $this->supervisorClient->getServersListVersion();
         
         $services = $res ? $res['services'] : null;
         $version = $res ? $res['version'] : null;
-        
 
-        return $this->render('ZOSupervisorMonitorBundle::index.html.twig', array(
-        	'servers' => $supervisorClient->getServers(),
+        return $this->render('@ZOSupervisorMonitor/index.html.twig', array(
+        	'servers' => $this->supervisorClient->getServers(),
         	'services' => $services,
         	'version' => $version,
         ));
@@ -28,8 +37,7 @@ class MonitorController extends AbstractController
 
     public function startAllAction($name)
     {
-    	$supervisorClient = $this->get('zo_supervisor_monitor.util.client');
-    	$res = $supervisorClient->startAllService($name);
+    	$res = $this->supervisorClient->startAllService($name);
 
     	if($res){
     		return new JsonResponse(array('message'=> 'All services has been started.'));
@@ -42,8 +50,7 @@ class MonitorController extends AbstractController
 
     public function restartAllAction($name)
     {
-    	$supervisorClient = $this->get('zo_supervisor_monitor.util.client');
-    	$res = $supervisorClient->restartAllService($name);
+    	$res = $this->supervisorClient->restartAllService($name);
 
 		if($res){
     		return new JsonResponse(array('message'=> 'All services has been restarted.'));
@@ -56,8 +63,7 @@ class MonitorController extends AbstractController
 
     public function stopAllAction($name)
     {    	
-    	$supervisorClient = $this->get('zo_supervisor_monitor.util.client');
-    	$res = $supervisorClient->stopAllService($name);
+    	$res = $this->supervisorClient->stopAllService($name);
 
     	if($res){
     		return new JsonResponse(array('message'=> 'All services has been stoped.'));
@@ -70,8 +76,7 @@ class MonitorController extends AbstractController
 
     public function startAction($name, $worker)
     {
-    	$supervisorClient = $this->get('zo_supervisor_monitor.util.client');
-    	$res = $supervisorClient->startService($name, $worker);
+    	$res = $this->supervisorClient->startService($name, $worker);
 
     	if($res){
     		return new JsonResponse(array('message'=> $worker.' has been started.'));
@@ -84,8 +89,7 @@ class MonitorController extends AbstractController
 
     public function restartAction($name, $worker)
     {		
-    	$supervisorClient = $this->get('zo_supervisor_monitor.util.client');
-    	$res = $supervisorClient->restartService($name, $worker);
+    	$res = $this->supervisorClient->restartService($name, $worker);
 
     	if($res){
     		return new JsonResponse(array('message'=> $worker.' has been restarted.'));
@@ -100,8 +104,7 @@ class MonitorController extends AbstractController
     public function stopAction($name, $worker)
     {
 
-    	$supervisorClient = $this->get('zo_supervisor_monitor.util.client');
-    	$res = $supervisorClient->stopService($name, $worker);
+    	$res = $this->supervisorClient->stopService($name, $worker);
     	if($res){
     		return new JsonResponse(array('message'=> $worker.' has been stopped.','service'=> $res));
     	}else{
@@ -113,8 +116,7 @@ class MonitorController extends AbstractController
 
     public function clearLogAction($name, $worker)
     {    	
-    	$supervisorClient = $this->get('zo_supervisor_monitor.util.client');
-    	$res = $supervisorClient->clearServiceLog($name, $worker);
+    	$res = $this->supervisorClient->clearServiceLog($name, $worker);
 
     	if($res){
     		return new JsonResponse(array('message'=> $worker.' log has been cleared.'));

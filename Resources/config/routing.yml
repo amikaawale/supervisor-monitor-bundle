@@ -1,32 +1,32 @@
 zo_supervisor_monitor_start:
     path:     /monitor/start/{name}/{worker}
-    defaults: { _controller: ZO\Bundle\SupervisorMonitorBundle\Controller\SecurityController::startAction }
+    defaults: { _controller: ZO\Bundle\SupervisorMonitorBundle\Controller\MonitorController::startAction }
 
 zo_supervisor_monitor_restart:
     path:     /monitor/restart/{name}/{worker}
-    defaults: { _controller: ZO\Bundle\SupervisorMonitorBundle\Controller\SecurityController::restartAction }
+    defaults: { _controller: ZO\Bundle\SupervisorMonitorBundle\Controller\MonitorController::restartAction }
 
 zo_supervisor_monitor_stop:
     path:     /monitor/stop/{name}/{worker}
-    defaults: { _controller: ZO\Bundle\SupervisorMonitorBundle\Controller\SecurityController::stopAction }
+    defaults: { _controller: ZO\Bundle\SupervisorMonitorBundle\Controller\MonitorController::stopAction }
 
 zo_supervisor_monitor_clear_log:
     path:     /monitor/clear-log/{name}/{worker}
-    defaults: { _controller: ZO\Bundle\SupervisorMonitorBundle\Controller\SecurityController::clearLogAction }
+    defaults: { _controller: ZO\Bundle\SupervisorMonitorBundle\Controller\MonitorController::clearLogAction }
 
 
 zo_supervisor_monitor_start_all:
     path:     /monitor/start-all/{name}
-    defaults: { _controller: ZO\Bundle\SupervisorMonitorBundle\Controller\SecurityController::startAllAction }
+    defaults: { _controller: ZO\Bundle\SupervisorMonitorBundle\Controller\MonitorController::startAllAction }
 
 zo_supervisor_monitor_restart_all:
     path:     /monitor/restart-all/{name}
-    defaults: { _controller: ZO\Bundle\SupervisorMonitorBundle\Controller\SecurityController::restartAllAction }
+    defaults: { _controller: ZO\Bundle\SupervisorMonitorBundle\Controller\MonitorController::restartAllAction }
 
 zo_supervisor_monitor_stop_all:
     path:     /monitor/stop-all/{name}
-    defaults: { _controller: ZO\Bundle\SupervisorMonitorBundle\Controller\SecurityController::stopAllAction }
+    defaults: { _controller: ZO\Bundle\SupervisorMonitorBundle\Controller\MonitorController::stopAllAction }
 
 zo_supervisor_monitor_index:
     path:     /monitor
-    defaults: { _controller: ZO\Bundle\SupervisorMonitorBundle\Controller\SecurityController::indexAction }
+    defaults: { _controller: ZO\Bundle\SupervisorMonitorBundle\Controller\MonitorController::indexAction }

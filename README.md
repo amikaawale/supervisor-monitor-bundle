@@ -58,7 +58,7 @@ Widget
 1. Supervisor client is exposed as service `zo_supervisor_monitor.util.client`.
 2. Supervisor configured servers process information can be fetched as,
 	```
-		$client = $this->get('zo_supervisor_monitor.util.client');
+		$client = $this->container->get('zo_supervisor_monitor.util.client');
 		$res = $this->client->getServersListVersion();
 		// $res = array('services' => $services, 'version' => $version);
 	```

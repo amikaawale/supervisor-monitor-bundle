@@ -9,10 +9,10 @@ This bundle provides a way to monitor supervisor process and control those state
 Config
 ------
 
-1. Enable the bundle on app/AppKernel.php 
+1. Enable the bundle on config/bundles.php 
 2. Configure the bundle 
 	```
-	# app/config/config.yml 
+	# config/packages/zo_supervisor_monitor.yaml
 
 	zo_supervisor_monitor:
 	    servers:
@@ -30,13 +30,25 @@ Config
 	```
 3. Register routes for bundles
 	```
-		# app/config/routing.yml
+		# config/routes.yaml
 
 		zo_supervisor_monitor:
 		    resource: "@ZOSupervisorMonitorBundle/Resources/config/routing.yml"
 		    prefix:   /supervisor/
 
 	```
+
+   ```
+3. Set Container
+   ```
+       # config/services.yaml
+
+      ZO\Bundle\SupervisorMonitorBundle\Controller\MonitorController:
+        calls:
+            - method: setContainer
+              arguments: [ '@service_container' ]
+
+   ```
 
 Find the supervisor monitor page at /supervisor/monitor.
 

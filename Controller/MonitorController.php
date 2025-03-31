@@ -3,124 +3,76 @@
 namespace ZO\Bundle\SupervisorMonitorBundle\Controller;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use PhpXmlRpc\Value;
-use PhpXmlRpc\Request;
-use PhpXmlRpc\Client;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Attribute\Route;
+use ZO\Bundle\SupervisorMonitorBundle\Util\SupervisorClient;
 
 class MonitorController extends AbstractController
 {
-    public function indexAction()
+    private SupervisorClient $supervisorClient;
+
+    public function __construct(SupervisorClient $supervisorClient)
     {
-    	$supervisorClient = $this->container->get('zo_supervisor_monitor.util.client');
-    	$res = $supervisorClient->getServersListVersion();
-
-        $services = $res ? $res['services'] : null;
-        $version = $res ? $res['version'] : null;
-
-
-        return $this->render('@ZOSupervisorMonitor/index.html.twig', array(
-        	'servers' => $supervisorClient->getServers(),
-        	'services' => $services,
-        	'version' => $version,
-        ));
+        $this->supervisorClient = $supervisorClient;
     }
 
-    public function startAllAction($name)
+    #[Route('/monitor', name: 'zo_supervisor_monitor_index')]
+    public function indexAction(): Response
     {
-    	$supervisorClient = $this->container->get('zo_supervisor_monitor.util.client');
-    	$res = $supervisorClient->startAllService($name);
+        $res = $this->supervisorClient->getServersListVersion();
 
-    	if($res){
-    		return new JsonResponse(array('message'=> 'All services has been started.'));
-    	}else{
-    		return new JsonResponse(array('message'=> 'Unable to start all services.'), 500);
-    	}
-
-    	// return $this->redirectToRoute('zo_supervisor_monitor_index');
+        return $this->render('@ZOSupervisorMonitor/index.html.twig', [
+            'servers' => $this->supervisorClient->getServers(),
+            'services' => $res['services'] ?? null,
+            'version' => $res['version'] ?? null,
+        ]);
     }
 
-    public function restartAllAction($name)
+    #[Route('/monitor/start/{name}/{worker}', name: 'zo_supervisor_monitor_start')]
+    public function startAction(string $name, string $worker): JsonResponse
     {
-    	$supervisorClient = $this->container->get('zo_supervisor_monitor.util.client');
-    	$res = $supervisorClient->restartAllService($name);
-
-		if($res){
-    		return new JsonResponse(array('message'=> 'All services has been restarted.'));
-    	}else{
-    		return new JsonResponse(array('message'=> 'Unable to restart all services.'), 500);
-    	}
-    	// return $this->redirectToRoute('zo_supervisor_monitor_index');
-
+        return $this->handleAction(fn() => $this->supervisorClient->startService($name, $worker), "$worker started.");
     }
 
-    public function stopAllAction($name)
+    #[Route('/monitor/restart/{name}/{worker}', name: 'zo_supervisor_monitor_restart')]
+    public function restartAction(string $name, string $worker): JsonResponse
     {
-    	$supervisorClient = $this->container->get('zo_supervisor_monitor.util.client');
-    	$res = $supervisorClient->stopAllService($name);
-
-    	if($res){
-    		return new JsonResponse(array('message'=> 'All services has been stoped.'));
-    	}else{
-    		return new JsonResponse(array('message'=> 'Unable to stop all services.'), 500);
-    	}
-
-    	// return $this->redirectToRoute('zo_supervisor_monitor_index');
+        return $this->handleAction(fn() => $this->supervisorClient->restartService($name, $worker), "$worker restarted.");
     }
 
-    public function startAction($name, $worker)
+    #[Route('/monitor/stop/{name}/{worker}', name: 'zo_supervisor_monitor_stop')]
+    public function stopAction(string $name, string $worker): JsonResponse
     {
-    	$supervisorClient = $this->container->get('zo_supervisor_monitor.util.client');
-    	$res = $supervisorClient->startService($name, $worker);
-
-    	if($res){
-    		return new JsonResponse(array('message'=> $worker.' has been started.'));
-    	}else{
-    		return new JsonResponse(array('message'=> 'Unable to start '.$worker.'.'), 500);
-    	}
-
-    	// return $this->redirectToRoute('zo_supervisor_monitor_index');
+        return $this->handleAction(fn() => $this->supervisorClient->stopService($name, $worker), "$worker stopped.");
     }
 
-    public function restartAction($name, $worker)
+    #[Route('/monitor/clear-log/{name}/{worker}', name: 'zo_supervisor_monitor_clear_log')]
+    public function clearLogAction(string $name, string $worker): JsonResponse
     {
-    	$supervisorClient = $this->container->get('zo_supervisor_monitor.util.client');
-    	$res = $supervisorClient->restartService($name, $worker);
-
-    	if($res){
-    		return new JsonResponse(array('message'=> $worker.' has been restarted.'));
-    	}else{
-    		return new JsonResponse(array('message'=> 'Unable to restart '.$worker.'.'), 500);
-    	}
-
-    	// return $this->redirectToRoute('zo_supervisor_monitor_index');
-
+        return $this->handleAction(fn() => $this->supervisorClient->clearServiceLog($name, $worker), "$worker log cleared.");
     }
 
-    public function stopAction($name, $worker)
+    #[Route('/monitor/start-all/{name}', name: 'zo_supervisor_monitor_start_all')]
+    public function startAllAction(string $name): JsonResponse
     {
-
-    	$supervisorClient = $this->container->get('zo_supervisor_monitor.util.client');
-    	$res = $supervisorClient->stopService($name, $worker);
-    	if($res){
-    		return new JsonResponse(array('message'=> $worker.' has been stopped.','service'=> $res));
-    	}else{
-    		return new JsonResponse(array('message'=> 'Unable to stop '.$worker.'.'), 500);
-    	}
-
-    	// return $this->redirectToRoute('zo_supervisor_monitor_index');
+        return $this->handleAction(fn() => $this->supervisorClient->startAllService($name), "All services started.");
     }
 
-    public function clearLogAction($name, $worker)
+    #[Route('/monitor/restart-all/{name}', name: 'zo_supervisor_monitor_restart_all')]
+    public function restartAllAction(string $name): JsonResponse
     {
-    	$supervisorClient = $this->container->get('zo_supervisor_monitor.util.client');
-    	$res = $supervisorClient->clearServiceLog($name, $worker);
+        return $this->handleAction(fn() => $this->supervisorClient->restartAllService($name), "All services restarted.");
+    }
 
-    	if($res){
-    		return new JsonResponse(array('message'=> $worker.' log has been cleared.'));
-    	}else{
-    		return new JsonResponse(array('message'=> 'Unable to clear log of  '.$worker.'.'), 500);
-    	}
-    	// return $this->redirectToRoute('zo_supervisor_monitor_index');
+    #[Route('/monitor/stop-all/{name}', name: 'zo_supervisor_monitor_stop_all')]
+    public function stopAllAction(string $name): JsonResponse
+    {
+        return $this->handleAction(fn() => $this->supervisorClient->stopAllService($name), "All services stopped.");
+    }
+
+    private function handleAction(callable $action, string $successMessage): JsonResponse
+    {
+        return $action() ? new JsonResponse(['message' => $successMessage]) : new JsonResponse(['message' => 'Operation failed.'], 500);
     }
 }

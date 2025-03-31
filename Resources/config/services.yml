@@ -1,5 +1,5 @@
 services:
-    zo_supervisor_monitor.util.client:
-       public: true
-       class: ZO\Bundle\SupervisorMonitorBundle\Util\SupervisorClient
-       arguments: ["%zo_supervisor_monitor.servers%"]
+    ZO\Bundle\SupervisorMonitorBundle\Util\SupervisorClient:
+        arguments:
+            $servers: "%zo_supervisor_monitor.servers%"
+            $logger: '@logger'

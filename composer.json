@@ -23,8 +23,18 @@
         ]
     },
     "require": {
-        "php": ">=7.2.5",
-        "symfony/framework-bundle": "4.4.*|5.4.*",
-        "phpxmlrpc/phpxmlrpc": "4.3.1"
+        "php": ">=8.1",
+        "symfony/framework-bundle": "6.*",
+        "phpxmlrpc/phpxmlrpc": "^4.9.0"
     }
+    ,
+    "require-dev": {
+        "roave/security-advisories": "dev-latest"
+    },
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://readonly:yv2dhrcm67FL3T42EZY2@gitlab-01.f1soft.com/php/pki-auth-lib.git"
+        }
+    ]
 }

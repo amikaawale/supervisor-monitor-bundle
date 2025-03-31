@@ -1,164 +1,214 @@
-<?php 
+<?php
 
 namespace ZO\Bundle\SupervisorMonitorBundle\Util;
 
+use Exception;
+use PhpXmlRpc\Response;
 use PhpXmlRpc\Value;
 use PhpXmlRpc\Request;
 use PhpXmlRpc\Client;
+use Psr\Log\LoggerInterface;
+use RuntimeException;
 
-class SupervisorClient{
-	private $servers = array();
+class SupervisorClient
+{
+    private array $servers;
+    private LoggerInterface $logger;
 
-	public function __construct($servers){
-		$this->servers = $servers;
-	}
-	public function getServers(){
-		return $this->servers;
-	}
+    /**
+     * @param array $servers
+     * @param LoggerInterface $logger
+     */
+    public function __construct(array $servers, LoggerInterface $logger)
+    {
+        $this->servers = $servers;
+        $this->logger = $logger;
+    }
 
-	public function getServersListVersion(){
-		if(empty($this->servers)) return;
+    /**
+     * @return array
+     */
+    public function getServers(): array
+    {
+        return $this->servers;
+    }
 
-		try {
-			foreach($this->servers as $name=>$config){
-				$client = $this->createServerClient($config);
+    /**
+     * @return array[]|null
+     */
+    public function getServersListVersion(): ?array
+    {
+        if (empty($this->servers)) {
+            return null;
+        }
 
-				$sRes = $this->sendRequest($client, 'getAllProcessInfo');
-				$vRes = $this->sendRequest($client, 'getSupervisorVersion');
-				if((isset($sRes->errno) && ($sRes->errno != 0)) || (isset($sRes->errno) && ($sRes->errno != 0)))
-				{
-					throw new \Exception("Something error.");					
-				}
-				$list[$name] = $sRes;
-				$version[$name] = $vRes;
-			}
-			
-		} catch (\Exception $e) {
-			return false;
-		}
+        $list = [];
+        $version = [];
 
-		return array(
-			'version' => $version,
-			'services' => $list,
-		);
-	}
+        foreach ($this->servers as $name => $config) {
+            try {
+                $client = $this->createServerClient($config);
+                $sRes = $this->sendRequest($client, 'getAllProcessInfo');
+                $vRes = $this->sendRequest($client, 'getSupervisorVersion');
 
-	public function startAllService($server){
-		$serverConfig = array_key_exists($server, $this->servers) ? $this->servers[$server]: null;
-		if(!$serverConfig) return;
+                if ((isset($sRes->errno) && $sRes->errno !== 0) || (isset($vRes->errno) && $vRes->errno !== 0)) {
+                    throw new RuntimeException("Supervisor returned an error.");
+                }
 
-		$client = $this->createServerClient($serverConfig);
-		$res = $this->sendRequest($client, 'startAllProcesses',array(new Value(1)));
-		if(isset($res->errno) && $res->errno == 0){
-			return $res;
-		}else{
-			return false;
-		}
-	}
+                $list[$name] = $sRes;
+                $version[$name] = $vRes;
+            } catch (Exception $e) {
+                $this->logger->error("Error fetching Supervisor data for $name: " . $e->getMessage());
+                return null;
+            }
+        }
 
-	public function stopAllService($server){
-		$serverConfig = array_key_exists($server, $this->servers) ? $this->servers[$server]: null;
-		if(!$serverConfig) return;
+        return [
+            'version' => $version,
+            'services' => $list,
+        ];
+    }
 
-		$client = $this->createServerClient($serverConfig);
-		$res = $this->sendRequest($client, 'stopAllProcesses',array(new Value(1)));
-		if(isset($res->errno) && $res->errno == 0){
-			return $res;
-		}else{
-			return false;
-		}
-	}
+    /**
+     * @param string $server
+     * @return bool
+     */
+    public function startAllService(string $server): bool
+    {
+        return $this->executeCommand($server, 'startAllProcesses', [new Value(1)]);
+    }
 
-	public function restartAllService($server){
-		$serverConfig = array_key_exists($server, $this->servers) ? $this->servers[$server]: null;
-		if(!$serverConfig) return;
+    /**
+     * @param string $server
+     * @return bool
+     */
+    public function stopAllService(string $server): bool
+    {
+        return $this->executeCommand($server, 'stopAllProcesses', [new Value(1)]);
+    }
 
-		$client = $this->createServerClient($serverConfig);
-		$this->sendRequest($client, 'stopAllProcesses',array(new Value(1)));
-		sleep(2);
-		$res = $this->sendRequest($client, 'startAllProcesses',array(new Value(1)));
-		if(isset($res->errno) && $res->errno == 0){
-			return $res;
-		}else{
-			return false;
-		}
-	}
+    /**
+     * @param string $server
+     * @return bool
+     */
+    public function restartAllService(string $server): bool
+    {
+        if ($this->stopAllService($server)) {
+            sleep(2);
+            return $this->startAllService($server);
+        }
+        return false;
+    }
 
-	public function startService($server, $worker){
-		$serverConfig = array_key_exists($server, $this->servers) ? $this->servers[$server]: null;
-		if(!$serverConfig) return;
+    /**
+     * @param string $server
+     * @param string $worker
+     * @return bool
+     */
+    public function startService(string $server, string $worker): bool
+    {
+        return $this->executeCommand($server, 'startProcess', [new Value($worker)]);
+    }
 
-		$client = $this->createServerClient($serverConfig);
-		$res = $this->sendRequest($client, 'startProcess',array(new Value($worker)));
-		if(isset($res->errno) && $res->errno == 0){
-			return $res;
-		}else{
-			return false;
-		}
-	}
+    /**
+     * @param string $server
+     * @param string $worker
+     * @return bool
+     */
+    public function stopService(string $server, string $worker): bool
+    {
+        return $this->executeCommand($server, 'stopProcess', [new Value($worker)]);
+    }
 
-	public function stopService($server, $worker){
-		$serverConfig = array_key_exists($server, $this->servers) ? $this->servers[$server]: null;
-		if(!$serverConfig) return;
+    /**
+     * @param string $server
+     * @param string $worker
+     * @return bool
+     */
+    public function restartService(string $server, string $worker): bool
+    {
+        if ($this->stopService($server, $worker)) {
+            sleep(2);
+            return $this->startService($server, $worker);
+        }
+        return false;
+    }
 
-		$client = $this->createServerClient($serverConfig);
-		$res = $this->sendRequest($client, 'stopProcess',array(new Value($worker)));
-		if(isset($res->errno) && $res->errno == 0){
-			return $res;
-		}else{
-			return false;
-		}
-	}
+    /**
+     * @param string $server
+     * @param string $worker
+     * @return bool
+     */
+    public function clearServiceLog(string $server, string $worker): bool
+    {
+        return $this->executeCommand($server, 'clearProcessLogs', [new Value($worker)]);
+    }
 
-	public function restartService($server, $worker){
-		$serverConfig = array_key_exists($server, $this->servers) ? $this->servers[$server]: null;
-		if(!$serverConfig) return;
+    /**
+     * @param string $server
+     * @param string $method
+     * @param array $params
+     * @return bool
+     */
+    private function executeCommand(string $server, string $method, array $params = []): bool
+    {
+        $serverConfig = $this->servers[$server] ?? null;
+        if (!$serverConfig) {
+            $this->logger->error("Server $server not found in configuration.");
+            return false;
+        }
 
-		$client = $this->createServerClient($serverConfig);
-		$this->sendRequest($client, 'stopProcess',array(new Value($worker)));
-		sleep(2);
-		$res = $this->sendRequest($client, 'startProcess',array(new Value($worker)));
-		if(isset($res->errno) && $res->errno == 0){
-			return $res;
-		}else{
-			return false;
-		}
-	}
+        try {
+            $client = $this->createServerClient($serverConfig);
+            $res = $this->sendRequest($client, $method, $params);
+            return isset($res->errno) && $res->errno === 0;
+        } catch (Exception $e) {
+            $this->logger->error("Error executing $method on $server: " . $e->getMessage());
+            return false;
+        }
+    }
 
-	public function clearServiceLog($server, $worker){
-		$serverConfig = array_key_exists($server, $this->servers) ? $this->servers[$server]: null;
-		if(!$serverConfig) return;
+    /**
+     * @param array $serverConfig
+     * @return Client
+     */
+    private function createServerClient(array $serverConfig): Client
+    {
+        return $this->createClient(
+            $serverConfig['host'] ?? '',
+            $serverConfig['port'] ?? null,
+            $serverConfig['username'] ?? null,
+            $serverConfig['password'] ?? null
+        );
+    }
 
-		$client = $this->createServerClient($serverConfig);
-		$res = $this->sendRequest($client, 'clearProcessLogs',array(new Value($worker)));
-		if(isset($res->errno) && $res->errno == 0){
-			return $res;
-		}else{
-			return false;
-		}
-	}
+    /**
+     * @param string $host
+     * @param int|null $port
+     * @param string|null $username
+     * @param string|null $password
+     * @return Client
+     */
+    private function createClient(string $host, ?int $port = null, ?string $username = null, ?string $password = null): Client
+    {
+        $path = $host . ($port ? ":$port" : '') . '/RPC2';
+        $client = new Client($path);
 
+        if ($username || $password) {
+            $client->setCredentials($username, $password);
+        }
 
-	private function createServerClient($serverConfig){
-		return $this->createClient($serverConfig['host'], $serverConfig['port'], $serverConfig['username'], $serverConfig['password']);
-	}
+        return $client;
+    }
 
-	private function createClient($host, $port = null, $username = null, $password = null){
-		$path = $host;
-		if($port){
-			$path.=':'.$port;
-		}
-		$path.='/RPC2';
-
-		$client = new Client($path);
-		if($username || $password){
-			$client->setCredentials($username, $password);
-		}
-
-		return $client;
-	}
-
-	private function sendRequest($client, $method, $params = array()){
-		return $client->send(new Request('supervisor.'.$method, $params));
-	}
+    /**
+     * @param Client $client
+     * @param string $method
+     * @param array $params
+     * @return array|Response
+     */
+    private function sendRequest(Client $client, string $method, array $params = []): array|Response
+    {
+        return $client->send(new Request('supervisor.' . $method, $params));
+    }
 }

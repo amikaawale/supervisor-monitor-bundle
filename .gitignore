@@ -1,2 +1,64 @@
+/app/config/parameters.yml
+/app/config/php_ini.yml
+/build/
+/phpunit.xml
+/var/*
+!/var/cache
+/var/cache/*
+!var/cache/.gitkeep
+!/var/logs
+/var/logs/*
+!var/logs/.gitkeep
+!/var/sessions
+/var/sessions/*
+!var/sessions/.gitkeep
+!var/SymfonyRequirements.php
+/vendor
+
+/app/bootstrap.php.cache
+/log
+
+/node_modules
+
+/.idea
 /.phpintel
-.idea
+/tmp/*
+
+
+/app/Resources/public/css/skin-ccms.css*
+/.sass-cache/
+
+###> symfony/framework-bundle ###
+/.env.local
+/.env.local.php
+/.env.*.local
+/config/secrets/prod/prod.decrypt.private.php
+/var/
+/vendor/
+###< symfony/framework-bundle ###
+
+###> symfony Version 5 - updated paths ###
+
+# Updated path for log files from var/logs to var/log
+!var/log/.gitkeep
+
+# Updated path from web/bundles to public/bundles
+/public/bundles/
+
+# Updated path from web/dump/* to public/dump/*
+# Ignore dump files !except for public/dump/tinymce/, and public/dump/uploads/
+/public/dump/*
+!public/dump/tinymce/*
+!public/dump/uploads
+
+# Updated path from web/ to public/
+# Ignore public assets folder(generated with Grunt)
+/public/css/*
+/public/js/*
+/public/fonts/*
+
+# ADDON SINGLE CCMS - dump files as per switch
+public/dump/neps/*
+public/dump/sct/*
+
+###< symfony Version 5 - updated paths ###

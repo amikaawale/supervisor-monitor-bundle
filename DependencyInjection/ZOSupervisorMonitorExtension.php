@@ -26,12 +26,7 @@ class ZOSupervisorMonitorExtension extends Extension
         $configuration = new Configuration();
         $config = $this->processConfiguration($configuration, $configs);
 
-        $loader = new Loader\YamlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
-        $loader->load('services.yml');
-
         // set config variable to parameters
         $container->setParameter('zo_supervisor_monitor.servers', $config['servers']);
-        // $container->setParameter( 'zo_supervisor_monitor.base_view', $config[ 'base_view' ] );
-        // $container->setParameter( 'zo_supervisor_monitor.base_block', $config[ 'base_block' ] );
     }
 }

@@ -9,20 +9,22 @@ use PhpXmlRpc\Request;
 use PhpXmlRpc\Client;
 use Psr\Log\LoggerInterface;
 use RuntimeException;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 class SupervisorClient
 {
-    private array $servers;
     private LoggerInterface $logger;
+    private ContainerInterface $container;
+    private $servers = [];
 
     /**
-     * @param array $servers
      * @param LoggerInterface $logger
+     * @param ContainerInterface $container
      */
-    public function __construct(array $servers, LoggerInterface $logger)
+    public function __construct(LoggerInterface $logger, ContainerInterface $container)
     {
-        $this->servers = $servers;
         $this->logger = $logger;
+        $this->servers = $container->getParameter('zo_supervisor_monitor.servers');
     }
 
     /**
@@ -59,6 +61,7 @@ class SupervisorClient
                 $version[$name] = $vRes;
             } catch (Exception $e) {
                 $this->logger->error("Error fetching Supervisor data for $name: " . $e->getMessage());
+
                 return null;
             }
         }
@@ -95,8 +98,10 @@ class SupervisorClient
     {
         if ($this->stopAllService($server)) {
             sleep(2);
+
             return $this->startAllService($server);
         }
+
         return false;
     }
 
@@ -129,8 +134,10 @@ class SupervisorClient
     {
         if ($this->stopService($server, $worker)) {
             sleep(2);
+
             return $this->startService($server, $worker);
         }
+
         return false;
     }
 
@@ -155,15 +162,18 @@ class SupervisorClient
         $serverConfig = $this->servers[$server] ?? null;
         if (!$serverConfig) {
             $this->logger->error("Server $server not found in configuration.");
+
             return false;
         }
 
         try {
             $client = $this->createServerClient($serverConfig);
             $res = $this->sendRequest($client, $method, $params);
+
             return isset($res->errno) && $res->errno === 0;
         } catch (Exception $e) {
             $this->logger->error("Error executing $method on $server: " . $e->getMessage());
+
             return false;
         }
     }

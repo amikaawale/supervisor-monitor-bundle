@@ -10,8 +10,14 @@ use ZO\Bundle\SupervisorMonitorBundle\Util\SupervisorClient;
 
 class MonitorController extends AbstractController
 {
+    /**
+     * @var SupervisorClient
+     */
     private SupervisorClient $supervisorClient;
 
+    /**
+     * @param SupervisorClient $supervisorClient
+     */
     public function __construct(SupervisorClient $supervisorClient)
     {
         $this->supervisorClient = $supervisorClient;

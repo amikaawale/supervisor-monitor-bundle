@@ -21,12 +21,6 @@ class Configuration implements ConfigurationInterface
         $rootNode = $treeBuilder->getRootNode();
         $rootNode
             ->children()
-            // ->scalarNode('base_view')
-            //     ->defaultValue('')
-            // ->end()
-            // ->scalarNode('base_block')
-            //     ->defaultValue('')
-            // ->end()
             ->arrayNode('servers')
             ->prototype('array')
             ->children()

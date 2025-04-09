@@ -9,7 +9,13 @@ This bundle provides a way to monitor supervisor process and control those state
 Config
 ------
 
-1. Enable the bundle on config/bundles.php 
+1. Enable the bundle on config/bundles.php
+
+   ```
+   ZO\Bundle\SupervisorMonitorBundle\ZOSupervisorMonitorBundle::class => ['all' => true],     
+
+   ```
+
 2. Configure the bundle 
 	```
 	# config/packages/zo_supervisor_monitor.yaml
@@ -28,17 +34,9 @@ Config
 	            password: null
 
 	```
-3. Routing annotation
+3. Routing by annotation
 	
-3. Set Container
-   ```
-       # config/services.yaml
+3. Find the supervisor monitor page at /supervisor/monitor.
 
-      ZO\Bundle\SupervisorMonitorBundle\Controller\MonitorController:
-        calls:
-            - method: setContainer
-              arguments: [ '@service_container' ]
 
-   ```
 
-Find the supervisor monitor page at /supervisor/monitor.

@@ -1,5 +1,10 @@
-# config/services.yaml
 services:
-  ZO\Bundle\SupervisorMonitorBundle\Util\SupervisorClient:
-    autowire: true
-    autoconfigure: true
+    ZO\Bundle\SupervisorMonitorBundle\Controller\MonitorController:
+        autowire: true
+        autoconfigure: true
+        public: true
+
+    ZO\Bundle\SupervisorMonitorBundle\Util\SupervisorClient:
+        autowire: true
+        autoconfigure: true
+

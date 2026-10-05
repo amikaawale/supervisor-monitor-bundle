@@ -34,7 +34,7 @@ Config
 	            password: null
 
 	```
-3. Routing by annotation
+3. Routing by attributes
 	
 3. Find the supervisor monitor page at /supervisor/monitor.
 
